@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("Rosie", function () {
+describe.skip("Rosie", function () {
   let contract;
 
   beforeEach(async () => {

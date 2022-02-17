@@ -1,0 +1,22 @@
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./ERC721A.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
+contract BaseRosie is Ownable, ERC721A, ReentrancyGuard {
+    constructor() ERC721A("Rosie", "ROSIE") {}
+
+    function publicSaleMint(uint256 mintAmount)
+        external
+    {
+        _safeMint(msg.sender, mintAmount);
+    }
+
+    function numberMinted(address owner) public view returns (uint256) {
+        return _numberMinted(owner);
+    }
+}

@@ -1,42 +1,78 @@
-describe('ERC721A Gas Usage', function () {
+const { ethers } = require("hardhat");
+
+  describe('Rosie Gas Usage', function () {
     beforeEach(async function () {
-      this.ERC721A = await ethers.getContractFactory('ERC721AGasReporterMock');
-      this.erc721a = await this.ERC721A.deploy('Azuki', 'AZUKI');
-      await this.erc721a.deployed();
+      this.Rosie = await ethers.getContractFactory('RosieMock');
+      this.rosie = await this.Rosie.deploy();
+      await this.rosie.deployed();
       const [owner, addr1] = await ethers.getSigners();
       this.owner = owner;
       this.addr1 = addr1;
     });
-  
-    context('mintOne', function () {
-      it('runs mintOne 50 times', async function () {
+
+    context('Seed allowlist', function () {
+      it('Seed 500 addresses', async function () {
+        let walletArray = []
+        let numberMinted = []
+        for(let i = 0; i < 1000; i++){
+          const newWallet = new ethers.Wallet.createRandom().address
+          walletArray.push(newWallet)
+          numberMinted.push(1)
+        }
+        await this.rosie.testSeedAllowlist(walletArray,numberMinted);
+      });
+    });  
+
+    context('First Mint', function () {
+      it.skip('First NFT minted', async function () {
+        const options = {
+          value: ethers.utils.parseEther("1.0")
+        };
+        await this.rosie.mint1First(options);
+      });
+    });  
+
+    context('Mint One', function () {
+      it.skip('Mint one 50 times', async function () {
+        const options = {
+          value: ethers.utils.parseEther("1.0")
+        };
         for (let i = 0; i < 50; i++) {
-          await this.erc721a.mintOne(this.addr1.address);
+          await this.rosie.mint1Public(options);
         }
       });
     });
-  
-    context('safeMintOne', function () {
-      it('runs safeMintOne 50 times', async function () {
+
+    context('Mint 3', function () {
+      it.skip('Mint 3 50 times', async function () {
+        const options = {
+          value: ethers.utils.parseEther("1.0")
+        };
         for (let i = 0; i < 50; i++) {
-          await this.erc721a.safeMintOne(this.addr1.address);
+          await this.rosie.mint3Public(options);
         }
       });
     });
-  
-    context('mintTen', function () {
-      it('runs mintTen 50 times', async function () {
+
+    context('Mint 5', function () {
+      it('Mint 5 50 times', async function () {
+        const options = {
+          value: ethers.utils.parseEther("1.0")
+        };
         for (let i = 0; i < 50; i++) {
-          await this.erc721a.mintTen(this.addr1.address);
+          await this.rosie.mint5Public(options);
         }
       });
     });
-  
-    context('safeMintTen', function () {
-      it('runs safeMintTen 50 times', async function () {
+
+    context('Mint Ten', function () {
+      it('Mint ten 50 times', async function () {
+        const options = {
+          value: ethers.utils.parseEther("1.0")
+        };
         for (let i = 0; i < 50; i++) {
-          await this.erc721a.safeMintTen(this.addr1.address);
+          await this.rosie.mintTenPublic(options);
         }
       });
     });
-  });
+});

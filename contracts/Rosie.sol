@@ -22,8 +22,8 @@ contract Rosie is Ownable, ERC721A, ReentrancyGuard {
     }
 
     SaleConfig public saleConfig = SaleConfig(
-        5,
-        100,
+        10,
+        10000,
         10,
         1644113479,
         2527693879,
@@ -53,7 +53,7 @@ contract Rosie is Ownable, ERC721A, ReentrancyGuard {
     }
 
     function publicSaleMint(uint256 mintAmount)
-        external
+        public
         payable
         callerIsUser
         isPublicOpen
@@ -86,7 +86,7 @@ contract Rosie is Ownable, ERC721A, ReentrancyGuard {
     }
 
     function seedAllowlist(address[] memory addresses, uint256[] memory numSlots)
-        external
+        public
         onlyOwner
     {
         require( addresses.length == numSlots.length, "addresses does not match numSlots length" );
