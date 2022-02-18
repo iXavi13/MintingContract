@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "build": "hardhat compile",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "allowlist": "node scripts/generateMerkle.js"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +18,8 @@
     "ethers": "^5.5.4",
     "hardhat": "^2.8.4",
     "hardhat-gas-reporter": "^1.0.8",
+    "keccak256": "^1.0.6",
+    "merkletreejs": "^0.2.27",
     "solidity-coverage": "^0.7.20"
   },
   "dependencies": {

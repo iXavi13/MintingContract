@@ -33,12 +33,6 @@ contract RosieMock is Rosie{
         numberMinted(owner);
     }
 
-    function testSeedAllowlist(address[] memory addresses, uint256[] memory numSlots)
-        public
-    {
-        seedAllowlist(addresses, numSlots);
-    }
-
     function mint1First()
         public
         payable

@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./ERC721A.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract Rosie is Ownable, ERC721A, ReentrancyGuard {
@@ -32,7 +33,8 @@ contract Rosie is Ownable, ERC721A, ReentrancyGuard {
         0.05 ether
     );
 
-    mapping(address => uint256) public allowlist;
+    bytes32 public merkleRoot = 0x0c5842d3f70f87d15e4aa4902c780e78362f7face8a7baf951dfc1fa671b3a54;
+    mapping(address => bool) public whitelistClaimed;
 
     modifier isPublicOpen
     {
@@ -68,7 +70,7 @@ contract Rosie is Ownable, ERC721A, ReentrancyGuard {
         _safeMint(msg.sender, mintAmount);
     }
 
-    function allowlistMint(uint8 mintAmount) 
+    function allowlistMint(uint8 mintAmount, bytes32[] calldata _merkleProof) 
         external 
         payable 
         callerIsUser 
@@ -76,23 +78,15 @@ contract Rosie is Ownable, ERC721A, ReentrancyGuard {
     {
         uint256 price = uint256(saleConfig.allowlistPrice);
         uint256 collectionSize = uint256(saleConfig.collectionSize);
-        require(allowlist[msg.sender] > 0, "not eligible for allowlist mint");
-        require(mintAmount <= allowlist[msg.sender], "Exceeded max mint amount!");
+        //require(allowlist[msg.sender] > 0, "not eligible for allowlist mint");
+        bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
+        require(MerkleProof.verify(_merkleProof, merkleRoot, leaf), "Proof not on allowlist!");
+        // require(mintAmount <= allowlist[msg.sender], "Exceeded max mint amount!");
         require(totalSupply() + mintAmount <= collectionSize, "reached max supply");
         require(mintAmount >= 1, "Mint Amount Incorrect");
         require(msg.value >= price * mintAmount && mintAmount >= 1, "Input values incorrect!");
-        allowlist[msg.sender] = allowlist[msg.sender] - mintAmount;
+        //set claimed somehow
         _safeMint(msg.sender, mintAmount);
-    }
-
-    function seedAllowlist(address[] memory addresses, uint256[] memory numSlots)
-        public
-        onlyOwner
-    {
-        require( addresses.length == numSlots.length, "addresses does not match numSlots length" );
-        for (uint256 i = 0; i < addresses.length; i++) {
-            allowlist[addresses[i]] = numSlots[i];
-        }
     }
 
     // // metadata URI

@@ -1,6 +1,6 @@
 const { ethers } = require("hardhat");
 
-  describe('Rosie Gas Usage', function () {
+  describe.skip('Rosie Gas Usage', function () {
     beforeEach(async function () {
       this.Rosie = await ethers.getContractFactory('RosieMock');
       this.rosie = await this.Rosie.deploy();
@@ -9,19 +9,6 @@ const { ethers } = require("hardhat");
       this.owner = owner;
       this.addr1 = addr1;
     });
-
-    context('Seed allowlist', function () {
-      it('Seed 500 addresses', async function () {
-        let walletArray = []
-        let numberMinted = []
-        for(let i = 0; i < 1000; i++){
-          const newWallet = new ethers.Wallet.createRandom().address
-          walletArray.push(newWallet)
-          numberMinted.push(1)
-        }
-        await this.rosie.testSeedAllowlist(walletArray,numberMinted);
-      });
-    });  
 
     context('First Mint', function () {
       it.skip('First NFT minted', async function () {
