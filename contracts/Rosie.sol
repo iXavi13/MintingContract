@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -12,9 +12,8 @@ contract Rosie is Ownable, ERC721A, ReentrancyGuard {
     constructor() ERC721A("Rosie", "ROSIE") {}
 
     struct SaleConfig {
-        uint8  maxTxn;
+        uint16 maxTxn;
         uint16 collectionSize;
-        uint16 devSupply;
         uint32 allowlistSaleStartTime;
         uint32 allowlistSaleEndTime;
         uint32 publicSaleStartTime;
@@ -25,7 +24,6 @@ contract Rosie is Ownable, ERC721A, ReentrancyGuard {
     SaleConfig public saleConfig = SaleConfig(
         10,
         10000,
-        10,
         1644113479,
         2527693879,
         1644113479,
@@ -33,18 +31,18 @@ contract Rosie is Ownable, ERC721A, ReentrancyGuard {
         0.05 ether
     );
 
-    bytes32 public merkleRoot = 0x0c5842d3f70f87d15e4aa4902c780e78362f7face8a7baf951dfc1fa671b3a54;
-    mapping(address => bool) public whitelistClaimed;
+    bytes32 public merkleRoot = 0x0b6e25a995ad97c378eb717afb66025c9b97b8b64727cc38277af800b89efc67;
+    mapping(address => uint256) public allowlistClaimed;
 
     modifier isPublicOpen
     {
-        require(block.timestamp >= uint256(saleConfig.publicSaleStartTime));
+        require(block.timestamp > uint256(saleConfig.publicSaleStartTime));
         _;
     }
 
     modifier isAllowlistOpen
     {
-        require(block.timestamp >= uint256(saleConfig.allowlistSaleStartTime) && block.timestamp <= uint256(saleConfig.allowlistSaleEndTime), "Allowlist is closed!");
+        require(block.timestamp > uint256(saleConfig.allowlistSaleStartTime) && block.timestamp < uint256(saleConfig.allowlistSaleEndTime), "Allowlist is closed!");
         _;
     }
 
@@ -63,9 +61,9 @@ contract Rosie is Ownable, ERC721A, ReentrancyGuard {
         uint256 price = uint256(saleConfig.publicPrice);
         uint256 collectionSize = uint256(saleConfig.collectionSize);
         uint256 maxTxn = uint256(saleConfig.maxTxn);
-        require(mintAmount >= 1 && mintAmount <= maxTxn, "Incorrect mint quantity!");
+        require(mintAmount > 0 && mintAmount < maxTxn + 1, "Incorrect mint quantity!");
         require(totalSupply() + mintAmount <= collectionSize, "reached max supply");
-        require(msg.value >= price * mintAmount && mintAmount >= 1, "Input values incorrect!");
+        require(msg.value >= price * mintAmount, "Input values incorrect!");
 
         _safeMint(msg.sender, mintAmount);
     }
@@ -78,15 +76,23 @@ contract Rosie is Ownable, ERC721A, ReentrancyGuard {
     {
         uint256 price = uint256(saleConfig.allowlistPrice);
         uint256 collectionSize = uint256(saleConfig.collectionSize);
-        //require(allowlist[msg.sender] > 0, "not eligible for allowlist mint");
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
         require(MerkleProof.verify(_merkleProof, merkleRoot, leaf), "Proof not on allowlist!");
-        // require(mintAmount <= allowlist[msg.sender], "Exceeded max mint amount!");
         require(totalSupply() + mintAmount <= collectionSize, "reached max supply");
-        require(mintAmount >= 1, "Mint Amount Incorrect");
-        require(msg.value >= price * mintAmount && mintAmount >= 1, "Input values incorrect!");
+        require(mintAmount > 0, "Mint Amount Incorrect");
+        require(msg.value >= price * mintAmount, "Input values incorrect!");
         //set claimed somehow
         _safeMint(msg.sender, mintAmount);
+    }
+
+    function airdropMint(address[] memory addresses, uint256[] memory numMints)
+        external
+        onlyOwner
+    {
+        require(addresses.length == numMints.length, "Sizes dont match");
+        for (uint i = 0; i < addresses.length; i++) {
+            _safeMint(addresses[i], numMints[i]);
+        }
     }
 
     // // metadata URI
