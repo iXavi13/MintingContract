@@ -20,11 +20,11 @@ const { ethers } = require("hardhat");
     });  
 
     context('Mint One', function () {
-      it.skip('Mint one 50 times', async function () {
+      it('Mint one 50 times', async function () {
         const options = {
           value: ethers.utils.parseEther("1.0")
         };
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 500; i++) {
           await this.rosie.mint1Public(options);
         }
       });

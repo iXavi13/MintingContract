@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./ERC721A.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "hardhat/console.sol";
 
 contract Rosie is Ownable, ERC721A, ReentrancyGuard {
     constructor() ERC721A("Rosie", "ROSIE") {}
@@ -31,8 +32,11 @@ contract Rosie is Ownable, ERC721A, ReentrancyGuard {
         0.05 ether
     );
 
-    bytes32 public merkleRoot = 0x0b6e25a995ad97c378eb717afb66025c9b97b8b64727cc38277af800b89efc67;
+    bytes32 public allowlistMerkleRoot = 0x0b6e25a995ad97c378eb717afb66025c9b97b8b64727cc38277af800b89efc67;
     mapping(address => uint256) public allowlistClaimed;
+
+    bytes32 public claimlistMerkleRoot = 0x5901829e5cbb7ab8996ca63c4d81d35dc2f09b8d28fbf1075e895bd737f82178;
+    mapping(address => bool) public claimlistClaimed;
 
     modifier isPublicOpen
     {
@@ -68,7 +72,7 @@ contract Rosie is Ownable, ERC721A, ReentrancyGuard {
         _safeMint(msg.sender, mintAmount);
     }
 
-    function allowlistMint(uint8 mintAmount, bytes32[] calldata _merkleProof) 
+    function allowlistMint(uint256 mintAmount, bytes32[] calldata _merkleProof) 
         external 
         payable 
         callerIsUser 
@@ -77,12 +81,29 @@ contract Rosie is Ownable, ERC721A, ReentrancyGuard {
         uint256 price = uint256(saleConfig.allowlistPrice);
         uint256 collectionSize = uint256(saleConfig.collectionSize);
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
-        require(MerkleProof.verify(_merkleProof, merkleRoot, leaf), "Proof not on allowlist!");
+        require(MerkleProof.verify(_merkleProof, allowlistMerkleRoot, leaf), "Proof not on allowlist!");
         require(totalSupply() + mintAmount <= collectionSize, "reached max supply");
         require(mintAmount > 0, "Mint Amount Incorrect");
         require(msg.value >= price * mintAmount, "Input values incorrect!");
         //set claimed somehow
         _safeMint(msg.sender, mintAmount);
+    }
+
+    function claimMint(uint256 allowance, bytes32[] calldata _merkleProof) 
+        external 
+        payable 
+        callerIsUser 
+        isAllowlistOpen
+    {
+        uint256 collectionSize = uint256(saleConfig.collectionSize);
+        bytes32 leaf = keccak256(abi.encode(msg.sender,Strings.toString(allowance)));
+        require(MerkleProof.verify(_merkleProof, claimlistMerkleRoot, leaf), "Proof not on allowlist!");
+        require(totalSupply() + allowance <= collectionSize, "reached max supply");
+        require(allowance > 0, "Mint Amount Incorrect");
+        require(!claimlistClaimed[msg.sender], "Already claimed!");
+        claimlistClaimed[msg.sender] = true;
+
+        _safeMint(msg.sender, allowance);
     }
 
     function airdropMint(address[] memory addresses, uint256[] memory numMints)

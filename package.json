@@ -5,7 +5,8 @@
   "scripts": {
     "build": "hardhat compile",
     "test": "hardhat test",
-    "allowlist": "node scripts/generateMerkle.js"
+    "allowlist": "node scripts/generateMerkle.js",
+    "claimlist": "node scripts/merkleForClaim.js"
   },
   "keywords": [],
   "author": "",

@@ -68,4 +68,42 @@ describe("Rosie2", function () {
     expect(mint).to.be.not.undefined;
     expect(mint).to.be.not.null;
   });
+
+  it("Mint claimlist", async function () {
+    const proof = [
+      '0xff119c548fd3868a6f91288ef6067a265dccb9ae3365e710b939fc4b85160474'
+    ]
+
+    const mint = await contract.connect(rosie).claimMint(3, proof);
+
+    expect(mint).to.be.not.undefined;
+    expect(mint).to.be.not.null;
+  });
+
+  it("Fail to claim claimlist twice", async function () {
+
+    const proof = [
+      '0xff119c548fd3868a6f91288ef6067a265dccb9ae3365e710b939fc4b85160474'
+    ]
+
+    const mint = await contract.connect(rosie).claimMint(3, proof);
+    const mintTwice = contract.connect(rosie).claimMint(3, proof);
+
+    expect(mint).to.be.not.undefined;
+    expect(mint).to.be.not.null;
+    await expect(mintTwice).to.be.reverted;
+  });
+
+  it("Try to use someone elses claimlist proof", async function () {
+
+    const proof = [
+      '0xff119c548fd3868a6f91288ef6067a265dccb9ae3365e710b939fc4b85160474'
+    ]
+
+    const mint = contract.connect(owner).claimMint(156, proof);
+
+    expect(mint).to.be.not.undefined;
+    expect(mint).to.be.not.null;
+    await expect(mint).to.be.reverted;
+  });
 });
