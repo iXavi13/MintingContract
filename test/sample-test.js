@@ -22,7 +22,7 @@ describe.skip("Rosie", function () {
   });
 });
 
-describe("Rosie2", function () {
+describe.skip("Rosie2", function () {
   let contract;
   let owner;
   let addr1;
