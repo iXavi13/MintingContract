@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.4;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import "./Ownable.sol";
+import "./PaymentSplitter.sol";
+import "./MerkleProof.sol";
+import "./Strings.sol";
 import "./ERC721A.sol";
 
 //    _/        _/_/_/_/    _/_/_/  _/_/_/_/  _/      _/  _/_/_/    _/      _/

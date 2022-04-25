@@ -3,7 +3,7 @@ const { ethers } = require("hardhat");
 
 // ===================== UTIL FUNCTIONS ========================
 
-describe("LegendX setters, getters and utils", function () {
+describe.skip("LegendXOld setters, getters and utils", function () {
     let contract;
     let owner;
     let addr1;
@@ -17,7 +17,7 @@ describe("LegendX setters, getters and utils", function () {
       ownerAddress = await owner.getAddress();
       addr1Address = await addr1.getAddress();
       rosieAddress = await rosie.getAddress();
-      const LegendX = await ethers.getContractFactory("LegendX");
+      const LegendX = await ethers.getContractFactory("LegendXOld");
       contract = await LegendX.deploy();
     });
 
@@ -26,7 +26,6 @@ describe("LegendX setters, getters and utils", function () {
             value: ethers.utils.parseEther("1.0")
         };
 
-        await contract.connect(owner).setPublicSaleTime(1644113480, 2644113480);
         await contract.connect(owner).setPaused(false);
         await contract.publicSaleMint(1, options);
         const uri = await contract.connect(owner).setBaseURI("some string/");
@@ -38,11 +37,10 @@ describe("LegendX setters, getters and utils", function () {
     });
 
     it("Sets max supply", async function () {
-        await contract.connect(owner).setMaxSupply(10, 5);
+        await contract.connect(owner).setMaxSupply(10);
         const config = await contract.saleConfig()
 
         expect(config.collectionSize).to.be.equal(10)
-        expect(config.claimSize).to.be.equal(5)
     });
 
     it("Sets allowlist time", async function () {
@@ -51,6 +49,14 @@ describe("LegendX setters, getters and utils", function () {
 
         expect(config.allowlistStartTime).to.be.equal(1644113480)
         expect(config.allowlistEndTime).to.be.equal(1644113480)
+    });
+
+    it("Sets pre public time", async function () {
+        await contract.connect(owner).setPrePublicSaleTime(1644113480,1644113480);
+        const config = await contract.saleConfig()
+
+        expect(config.prePublicStartTime).to.be.equal(1644113480)
+        expect(config.prePublicEndTime).to.be.equal(1644113480)
     });
 
     it("Sets claimlist time", async function () {
@@ -62,11 +68,10 @@ describe("LegendX setters, getters and utils", function () {
     });
 
     it("Sets public time", async function () {
-        await contract.connect(owner).setPublicSaleTime(1644113480, 1644113480);
+        await contract.connect(owner).setPublicSaleTime(1644113480);
         const config = await contract.saleConfig()
 
         expect(config.publicStartTime).to.be.equal(1644113480)
-        expect(config.publicEndTime).to.be.equal(1644113480)
     });
 
     it("Sets allowlist merkle root", async function () {
@@ -83,7 +88,14 @@ describe("LegendX setters, getters and utils", function () {
         expect(merkleRoot).to.be.equal("0x0b6e25a995ad97c378eb717afb66025c9b97b8b64727cc38277af800b89efc67")
     });
 
-    it("Sets paused", async function () {
+    it("Sets pre-public merkle root", async function () {
+        await contract.connect(owner).setPrePublicMerkleRoot("0x0b6e25a995ad97c378eb717afb66025c9b97b8b64727cc38277af800b89efc67");
+        const merkleRoot = await contract.prePublicMerkleRoot()
+
+        expect(merkleRoot).to.be.equal("0x0b6e25a995ad97c378eb717afb66025c9b97b8b64727cc38277af800b89efc67")
+    });
+
+    it("Sets pasued", async function () {
         await contract.connect(owner).setPaused(false);
         const isPaused = await contract.isPaused()
 
@@ -92,7 +104,7 @@ describe("LegendX setters, getters and utils", function () {
 
 
     it("Fails when non-owner tries to use only owner function", async function () {
-        const attempt = contract.connect(addr1).setAllowlistMerkleRoot("0x0b6e25a995ad97c378eb717afb66025c9b97b8b64727cc38277af800b89efc67");
+        const attempt = contract.connect(addr1).setPrePublicMerkleRoot("0x0b6e25a995ad97c378eb717afb66025c9b97b8b64727cc38277af800b89efc67");
 
         await expect(attempt).to.be.reverted;
     });
@@ -101,7 +113,7 @@ describe("LegendX setters, getters and utils", function () {
 
 // ===================== Allowlist ========================
 
-describe("LegendX allowlist minting", function () {
+describe.skip("LegendXOld allowlist minting", function () {
 let contract;
 let owner;
 let addr1;
@@ -116,10 +128,8 @@ let proof;
       ownerAddress = await owner.getAddress();
       addr1Address = await addr1.getAddress();
       rosieAddress = await rosie.getAddress();
-      const LegendX = await ethers.getContractFactory("LegendX");
+      const LegendX = await ethers.getContractFactory("LegendXOld");
       contract = await LegendX.deploy();
-      await contract.connect(owner).setAllowlistSaleTime(1644113480, 2644113480);
-      await contract.connect(owner).setAllowlistMerkleRoot("0x0b6e25a995ad97c378eb717afb66025c9b97b8b64727cc38277af800b89efc67");
       await contract.connect(owner).setPaused(false)
       proof = [
           '0x72895db48a7b52e16314800769e95c81669fb63197ea9cea700dd7402e843702',
@@ -139,7 +149,7 @@ let proof;
         expect(mint).to.be.not.null;
     });
 
-    it("Fails if mint paused", async function () {
+    it("Fails if mint paaused", async function () {
         const options = {
             value: ethers.utils.parseEther("1.0")
         };
@@ -155,7 +165,7 @@ let proof;
             value: ethers.utils.parseEther("1.0")
         };
 
-        await contract.connect(owner).setMaxSupply(1,0);
+        await contract.connect(owner).setMaxSupply(1);
         const mint = contract.connect(rosie).allowlistMint(2, proof, options);
 
         await expect(mint).to.be.revertedWith("Reached max supply");
@@ -170,7 +180,7 @@ let proof;
         await contract.connect(owner).setAllowlistSaleTime(2527693879,2527693880);
         const mint = contract.connect(rosie).allowlistMint(1, proof, options);
 
-        await expect(mint).to.be.revertedWith("Allowlist window is closed!");
+        await expect(mint).to.be.revertedWith("Window is closed!");
     });
 
     it("Fails with incorrect proof", async function () {
@@ -193,7 +203,8 @@ let proof;
             value: ethers.utils.parseEther("1.2")
         };
         const config = await contract.purchaseConfig();
-        const mint = contract.connect(rosie).allowlistMint(Math.ceil(Number(config.maxAllowlistTxn)+1), proof, options);
+
+        const mint = contract.connect(rosie).allowlistMint(config.maxTxn+1, proof, options);
 
         await expect(mint).to.be.revertedWith("Mint Amount Incorrect");
     });
@@ -204,8 +215,8 @@ let proof;
         };
         const config = await contract.purchaseConfig();
 
-        await contract.connect(rosie).allowlistMint(Math.ceil(Number(config.maxAllowlistTxn)/2), proof, options);
-        const mint = contract.connect(rosie).allowlistMint(Math.ceil(Number(config.maxAllowlistTxn)/2)+1, proof, options);
+        await contract.connect(rosie).allowlistMint(Math.ceil(config.maxTxn/2), proof, options);
+        const mint = contract.connect(rosie).allowlistMint(Math.ceil(config.maxTxn/2)+1, proof, options);
 
         await expect(mint).to.be.revertedWith("Exceeds max mint amount!");
     });
@@ -243,7 +254,7 @@ let proof;
 
 // ===================== Claimlist ========================
 
-describe("LegendX claimlist minting", function () {
+describe.skip("LegendXOld claimlist minting", function () {
 let contract;
 let owner;
 let addr1;
@@ -258,11 +269,9 @@ let proof;
         ownerAddress = await owner.getAddress();
         addr1Address = await addr1.getAddress();
         rosieAddress = await rosie.getAddress();
-        const LegendX = await ethers.getContractFactory("LegendX");
+        const LegendX = await ethers.getContractFactory("LegendXOld");
         contract = await LegendX.deploy();
         await contract.connect(owner).setPaused(false)
-        await contract.connect(owner).setClaimlistSaleTime(1644113480, 2644113480);
-        await contract.connect(owner).setClaimlistMerkleRoot("0x5901829e5cbb7ab8996ca63c4d81d35dc2f09b8d28fbf1075e895bd737f82178");
         proof = [
         '0xff119c548fd3868a6f91288ef6067a265dccb9ae3365e710b939fc4b85160474'
         ]
@@ -276,8 +285,12 @@ let proof;
     });
 
     it("Fails if mint paused", async function () {
+        const options = {
+            value: ethers.utils.parseEther("1.0")
+        };
+
         await contract.connect(owner).setPaused(true)
-        const mint = contract.connect(rosie).claimMint(3, proof);
+        const mint = contract.connect(rosie).claimMint(3, proof, options);
 
         await expect(mint).to.be.revertedWith("Mint paused");
     });
@@ -286,12 +299,12 @@ let proof;
         await contract.connect(owner).setClaimlistSaleTime(2527693879,2527693880);
         const mint = contract.connect(rosie).claimMint(1, proof);
 
-        await expect(mint).to.be.revertedWith("Claim window is closed!");
+        await expect(mint).to.be.revertedWith("Window is closed!");
     });
 
     it("Fails if collection size has been reached", async function () {
 
-        await contract.connect(owner).setMaxSupply(2,0);
+        await contract.connect(owner).setMaxSupply(2);
         const mint = contract.connect(rosie).claimMint(3, proof);
 
         await expect(mint).to.be.revertedWith("Reached max supply");
@@ -305,7 +318,7 @@ let proof;
 
         const mint = contract.connect(rosie).claimMint(0, proof);
 
-        await expect(mint).to.be.revertedWith("Proof not on claimlist!");
+        await expect(mint).to.be.revertedWith("Proof not on allowlist!");
     });
 
     it("Fails to mint more than once", async function () {
@@ -318,13 +331,14 @@ let proof;
     it("Fails to claim if not on list", async function () {
         const mint = contract.connect(addr1).claimMint(1, proof);
 
-        await expect(mint).to.be.revertedWith("Proof not on claimlist!");
+        await expect(mint).to.be.revertedWith("Proof not on allowlist!");
     });
 });
 
 // ===================== Public ========================
+// Notes: Public currently does not have a cap
 
-describe("LegendX public minting", function () {
+describe.skip("LegendXOld public minting", function () {
 let contract;
 let owner;
 let addr1;
@@ -338,10 +352,9 @@ let rosieAddress;
         ownerAddress = await owner.getAddress();
         addr1Address = await addr1.getAddress();
         rosieAddress = await rosie.getAddress();
-        const LegendX = await ethers.getContractFactory("LegendX");
+        const LegendX = await ethers.getContractFactory("LegendXOld");
         contract = await LegendX.deploy();
         await contract.connect(owner).setPaused(false)
-        await contract.connect(owner).setPublicSaleTime(1644113480, 2644113480);
     });
 
     it("Mints", async function () {
@@ -366,23 +379,12 @@ let rosieAddress;
         await expect(mint).to.be.revertedWith("Mint paused");
     });
 
-    it("Fails if collection size minus claim size has been reached", async function () {
-        const options = {
-            value: ethers.utils.parseEther("1.0")
-        };
-
-        await contract.connect(owner).setMaxSupply(4,3);
-        const mint = contract.connect(rosie).publicSaleMint(2, options);
-
-        await expect(mint).to.be.revertedWith("Reached max supply");
-    });
-
     it("Fails if collection size has been reached", async function () {
         const options = {
             value: ethers.utils.parseEther("1.0")
         };
 
-        await contract.connect(owner).setMaxSupply(3,0);
+        await contract.connect(owner).setMaxSupply(3);
         const mint = contract.connect(rosie).publicSaleMint(4, options);
 
         await expect(mint).to.be.revertedWith("Reached max supply");
@@ -394,10 +396,10 @@ let rosieAddress;
             value: ethers.utils.parseEther("0.1")
         };
 
-        await contract.connect(owner).setPublicSaleTime(2527693879, 2527693879);
+        await contract.connect(owner).setPublicSaleTime(2527693879);
         const mint = contract.connect(rosie).publicSaleMint(1, options);
 
-        await expect(mint).to.be.revertedWith("Public window is closed!");
+        await expect(mint).to.be.revertedWith("Window is closed!");
     });
 
     it("Fails to mint more than max", async function () {
@@ -406,7 +408,7 @@ let rosieAddress;
         };
         const config = await contract.purchaseConfig();
 
-        const mint = contract.connect(rosie).publicSaleMint(Number(config.maxPublicTxn)+1, options);
+        const mint = contract.connect(rosie).publicSaleMint(config.maxTxn+1, options);
 
         await expect(mint).to.be.revertedWith("Mint Amount Incorrect");
     });
@@ -432,9 +434,9 @@ let rosieAddress;
     });
 });
 
-// ===================== Dev Mint ========================
+// ===================== Airdrop ========================
 
-describe("LegendX Dev mint", function () {
+describe.skip("LegendXOld Airdrop mint", function () {
     let contract;
     let owner;
     let addr1;
@@ -448,33 +450,26 @@ describe("LegendX Dev mint", function () {
         ownerAddress = await owner.getAddress();
         addr1Address = await addr1.getAddress();
         rosieAddress = await rosie.getAddress();
-        const LegendX = await ethers.getContractFactory("LegendX");
+        const LegendX = await ethers.getContractFactory("LegendXOld");
         contract = await LegendX.deploy();
         await contract.connect(owner).setPaused(false)
     });
 
-    it("Mints", async function () {
-        const mint = await contract.connect(owner).devMint([rosieAddress],[1]);
+    it("Airdrop mints", async function () {
+        const mint = await contract.connect(owner).airdropMint([rosieAddress],[1]);
 
         expect(mint).to.be.not.undefined;
         expect(mint).to.be.not.null;
     });
 
-    it("Fails if reached max mints", async function () {
-        await contract.connect(owner).setMaxSupply(3,0);
-        const mint = contract.connect(owner).devMint([rosieAddress],[4]);
-
-        await expect(mint).to.be.revertedWith("Reached max supply");
-    });
-
-    it("Fails to dev mint if arrays different sizes", async function () {
-        const mint = contract.connect(owner).devMint([rosieAddress],[1,2]);
+    it("Fails to airdrop mint if arrays different sizes", async function () {
+        const mint = contract.connect(owner).airdropMint([rosieAddress],[1,2]);
 
         await expect(mint).to.be.revertedWith("Arrays dont match");
     });
 
-    it("Fails to dev mint if 0 quantity", async function () {
-        const mint = contract.connect(owner).devMint([rosieAddress, addr1Address],[1,0]);
+    it("Fails to airdrop mint if 0 quantity", async function () {
+        const mint = contract.connect(owner).airdropMint([rosieAddress, addr1Address],[1,0]);
 
         await expect(mint).to.be.revertedWith("Cannot mint 0!");
     });

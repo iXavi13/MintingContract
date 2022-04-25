@@ -1,11 +1,11 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.4;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import "./Ownable.sol";
+import "./PaymentSplitter.sol";
+import "./MerkleProof.sol";
+import "./Strings.sol";
 import "./ERC721A.sol";
 
 //    _/        _/_/_/_/    _/_/_/  _/_/_/_/  _/      _/  _/_/_/    _/      _/
@@ -39,12 +39,12 @@ contract LegendX is Ownable, ERC721A, PaymentSplitter {
     SaleConfig public saleConfig = SaleConfig(
         10000,
         4200,
-        1650636000,
-        1650679200,
-        1650679200,
-        1650754800,
-        1650765600,
-        1650852000
+        1650060000,
+        1650103200,
+        1650103200,
+        1650146400,
+        1650146400,
+        1650362400
     );
 
     PurchaseConfig public purchaseConfig = PurchaseConfig(
@@ -55,17 +55,16 @@ contract LegendX is Ownable, ERC721A, PaymentSplitter {
     );
 
     address[] private _splitterAddressList = [
-        0x492EFaAE6bd47AC479DA908f91ff6f15Bc395371, 
-        0x471f1FFD0cAe3B116d80C7d4fe002861F8FAe36a, 
-        0x3E7B68c3896b45808A0dA50B48Cb2A44D11342EF, 
-        0x342b68aDe2384aE1e61A65758d2Af49138dB5224,
-        0x4Cc1bF50E741Cc7e5A152bB9e5b9D5071cE9f402
+        0x693065F2e132E9A8B70AA4D43120EAef7f8f2685, 
+        0x8627912B6ec8bD7A204Ea46026E11efBB290df3b, 
+        0xdf1fa21aaD71C50E642FcA3Aa4332da17BbEA409, 
+        0x0F8aAC3F77668f6053cFF816713EE891F8B4B161 
     ];
 
-    uint256[] private _shareList = [8, 10, 10, 15, 57];
+    uint256[] private _shareList = [25, 25, 25, 25];
 
 
-    string private _baseTokenURI = "ipfs://QmPfmyyK51og3BtbThZgfdR3S4tgCEc79VDa9f6fSwugAM/";
+    string private _baseTokenURI;
     bool public isPaused = true;
 
     bytes32 public allowlistMerkleRoot;
@@ -76,19 +75,19 @@ contract LegendX is Ownable, ERC721A, PaymentSplitter {
 
     modifier isAllowlistOpen
     {
-        require(block.timestamp > uint256(saleConfig.allowlistStartTime) && block.timestamp < uint256(saleConfig.allowlistEndTime), "Allowlist window is closed!");
+        require(block.timestamp > uint256(saleConfig.allowlistStartTime) && block.timestamp < uint256(saleConfig.allowlistEndTime), "Window is closed!");
         _;
     }
 
     modifier isClaimOpen
     {
-        require(block.timestamp > uint256(saleConfig.claimlistStartTime) && block.timestamp < uint256(saleConfig.claimlistEndTime), "Claim window is closed!");
+        require(block.timestamp > uint256(saleConfig.claimlistStartTime) && block.timestamp < uint256(saleConfig.claimlistEndTime), "Window is closed!");
         _;
     }
 
     modifier isPublicOpen
     {
-        require(block.timestamp > uint256(saleConfig.publicStartTime) && block.timestamp < uint256(saleConfig.publicEndTime), "Public window is closed!");
+        require(block.timestamp > uint256(saleConfig.publicStartTime) && block.timestamp < uint256(saleConfig.publicEndTime), "Window is closed!");
         _;
     }
 
@@ -145,13 +144,14 @@ contract LegendX is Ownable, ERC721A, PaymentSplitter {
     }
 
     function claimMint(uint256 allowance, bytes32[] calldata _merkleProof) 
-        external
+        external 
+        payable 
         callerIsUser 
         isClaimOpen
     {
         uint256 collectionSize = uint256(saleConfig.collectionSize);
         bytes32 leaf = keccak256(abi.encode(msg.sender,Strings.toString(allowance)));
-        require(MerkleProof.verify(_merkleProof, claimlistMerkleRoot, leaf), "Proof not on claimlist!");
+        require(MerkleProof.verify(_merkleProof, claimlistMerkleRoot, leaf), "Proof not on allowlist!");
         require(totalSupply() + allowance < collectionSize + 1, "Reached max supply");
         require(!claimlistClaimed[msg.sender], "Already claimed!");
         require(!isPaused, "Mint paused");
