@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./ERC721A.sol";
+import "./ERC721A-old.sol";
 
 contract MoonBats is Ownable, ERC721A, ReentrancyGuard {
     constructor() ERC721A("MoonBats", "MOONBATS") {}

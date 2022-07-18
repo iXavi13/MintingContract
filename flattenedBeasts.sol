@@ -1,11 +1,529 @@
 // SPDX-License-Identifier: MIT
+// Sources flattened with hardhat v2.8.4 https://hardhat.org
+
+// File @openzeppelin/contracts/utils/Context.sol@v4.5.0
+
+// OpenZeppelin Contracts v4.4.1 (utils/Context.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Provides information about the current execution context, including the
+ * sender of the transaction and its data. While these are generally available
+ * via msg.sender and msg.data, they should not be accessed in such a direct
+ * manner, since when dealing with meta-transactions the account sending and
+ * paying for execution may not be the actual sender (as far as an application
+ * is concerned).
+ *
+ * This contract is only required for intermediate, library-like contracts.
+ */
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address) {
+        return msg.sender;
+    }
+
+    function _msgData() internal view virtual returns (bytes calldata) {
+        return msg.data;
+    }
+}
+
+
+// File @openzeppelin/contracts/access/Ownable.sol@v4.5.0
+
+// OpenZeppelin Contracts v4.4.1 (access/Ownable.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Contract module which provides a basic access control mechanism, where
+ * there is an account (an owner) that can be granted exclusive access to
+ * specific functions.
+ *
+ * By default, the owner account will be the one that deploys the contract. This
+ * can later be changed with {transferOwnership}.
+ *
+ * This module is used through inheritance. It will make available the modifier
+ * `onlyOwner`, which can be applied to your functions to restrict their use to
+ * the owner.
+ */
+abstract contract Ownable is Context {
+    address private _owner;
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    /**
+     * @dev Initializes the contract setting the deployer as the initial owner.
+     */
+    constructor() {
+        _transferOwnership(_msgSender());
+    }
+
+    /**
+     * @dev Returns the address of the current owner.
+     */
+    function owner() public view virtual returns (address) {
+        return _owner;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(owner() == _msgSender(), "Ownable: caller is not the owner");
+        _;
+    }
+
+    /**
+     * @dev Leaves the contract without owner. It will not be possible to call
+     * `onlyOwner` functions anymore. Can only be called by the current owner.
+     *
+     * NOTE: Renouncing ownership will leave the contract without an owner,
+     * thereby removing any functionality that is only available to the owner.
+     */
+    function renounceOwnership() public virtual onlyOwner {
+        _transferOwnership(address(0));
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        _transferOwnership(newOwner);
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Internal function without access restriction.
+     */
+    function _transferOwnership(address newOwner) internal virtual {
+        address oldOwner = _owner;
+        _owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
+    }
+}
+
+
+// File @openzeppelin/contracts/utils/cryptography/MerkleProof.sol@v4.5.0
+
+// OpenZeppelin Contracts (last updated v4.5.0) (utils/cryptography/MerkleProof.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev These functions deal with verification of Merkle Trees proofs.
+ *
+ * The proofs can be generated using the JavaScript library
+ * https://github.com/miguelmota/merkletreejs[merkletreejs].
+ * Note: the hashing algorithm should be keccak256 and pair sorting should be enabled.
+ *
+ * See `test/utils/cryptography/MerkleProof.test.js` for some examples.
+ */
+library MerkleProof {
+    /**
+     * @dev Returns true if a `leaf` can be proved to be a part of a Merkle tree
+     * defined by `root`. For this, a `proof` must be provided, containing
+     * sibling hashes on the branch from the leaf to the root of the tree. Each
+     * pair of leaves and each pair of pre-images are assumed to be sorted.
+     */
+    function verify(
+        bytes32[] memory proof,
+        bytes32 root,
+        bytes32 leaf
+    ) internal pure returns (bool) {
+        return processProof(proof, leaf) == root;
+    }
+
+    /**
+     * @dev Returns the rebuilt hash obtained by traversing a Merklee tree up
+     * from `leaf` using `proof`. A `proof` is valid if and only if the rebuilt
+     * hash matches the root of the tree. When processing the proof, the pairs
+     * of leafs & pre-images are assumed to be sorted.
+     *
+     * _Available since v4.4._
+     */
+    function processProof(bytes32[] memory proof, bytes32 leaf) internal pure returns (bytes32) {
+        bytes32 computedHash = leaf;
+        for (uint256 i = 0; i < proof.length; i++) {
+            bytes32 proofElement = proof[i];
+            if (computedHash <= proofElement) {
+                // Hash(current computed hash + current element of the proof)
+                computedHash = _efficientHash(computedHash, proofElement);
+            } else {
+                // Hash(current element of the proof + current computed hash)
+                computedHash = _efficientHash(proofElement, computedHash);
+            }
+        }
+        return computedHash;
+    }
+
+    function _efficientHash(bytes32 a, bytes32 b) private pure returns (bytes32 value) {
+        assembly {
+            mstore(0x00, a)
+            mstore(0x20, b)
+            value := keccak256(0x00, 0x40)
+        }
+    }
+}
+
+
+// File @openzeppelin/contracts/utils/Strings.sol@v4.5.0
+
+// OpenZeppelin Contracts v4.4.1 (utils/Strings.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev String operations.
+ */
+library Strings {
+    bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";
+
+    /**
+     * @dev Converts a `uint256` to its ASCII `string` decimal representation.
+     */
+    function toString(uint256 value) internal pure returns (string memory) {
+        // Inspired by OraclizeAPI's implementation - MIT licence
+        // https://github.com/oraclize/ethereum-api/blob/b42146b063c7d6ee1358846c198246239e9360e8/oraclizeAPI_0.4.25.sol
+
+        if (value == 0) {
+            return "0";
+        }
+        uint256 temp = value;
+        uint256 digits;
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        bytes memory buffer = new bytes(digits);
+        while (value != 0) {
+            digits -= 1;
+            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
+            value /= 10;
+        }
+        return string(buffer);
+    }
+
+    /**
+     * @dev Converts a `uint256` to its ASCII `string` hexadecimal representation.
+     */
+    function toHexString(uint256 value) internal pure returns (string memory) {
+        if (value == 0) {
+            return "0x00";
+        }
+        uint256 temp = value;
+        uint256 length = 0;
+        while (temp != 0) {
+            length++;
+            temp >>= 8;
+        }
+        return toHexString(value, length);
+    }
+
+    /**
+     * @dev Converts a `uint256` to its ASCII `string` hexadecimal representation with fixed length.
+     */
+    function toHexString(uint256 value, uint256 length) internal pure returns (string memory) {
+        bytes memory buffer = new bytes(2 * length + 2);
+        buffer[0] = "0";
+        buffer[1] = "x";
+        for (uint256 i = 2 * length + 1; i > 1; --i) {
+            buffer[i] = _HEX_SYMBOLS[value & 0xf];
+            value >>= 4;
+        }
+        require(value == 0, "Strings: hex length insufficient");
+        return string(buffer);
+    }
+}
+
+
+// File contracts/IERC721A.sol
+
 // ERC721A Contracts v4.1.0
 // Creator: Chiru Labs
 
 pragma solidity ^0.8.4;
 
-import './IERC721A.sol';
+/**
+ * @dev Interface of an ERC721A compliant contract.
+ */
+interface IERC721A {
+    /**
+     * The caller must own the token or be an approved operator.
+     */
+    error ApprovalCallerNotOwnerNorApproved();
 
+    /**
+     * The token does not exist.
+     */
+    error ApprovalQueryForNonexistentToken();
+
+    /**
+     * The caller cannot approve to their own address.
+     */
+    error ApproveToCaller();
+
+    /**
+     * Cannot query the balance for the zero address.
+     */
+    error BalanceQueryForZeroAddress();
+
+    /**
+     * Cannot mint to the zero address.
+     */
+    error MintToZeroAddress();
+
+    /**
+     * The quantity of tokens minted must be more than zero.
+     */
+    error MintZeroQuantity();
+
+    /**
+     * The token does not exist.
+     */
+    error OwnerQueryForNonexistentToken();
+
+    /**
+     * The caller must own the token or be an approved operator.
+     */
+    error TransferCallerNotOwnerNorApproved();
+
+    /**
+     * The token must be owned by `from`.
+     */
+    error TransferFromIncorrectOwner();
+
+    /**
+     * Cannot safely transfer to a contract that does not implement the ERC721Receiver interface.
+     */
+    error TransferToNonERC721ReceiverImplementer();
+
+    /**
+     * Cannot transfer to the zero address.
+     */
+    error TransferToZeroAddress();
+
+    /**
+     * The token does not exist.
+     */
+    error URIQueryForNonexistentToken();
+
+    /**
+     * The `quantity` minted with ERC2309 exceeds the safety limit.
+     */
+    error MintERC2309QuantityExceedsLimit();
+
+    /**
+     * The `extraData` cannot be set on an unintialized ownership slot.
+     */
+    error OwnershipNotInitializedForExtraData();
+
+    struct TokenOwnership {
+        // The address of the owner.
+        address addr;
+        // Keeps track of the start time of ownership with minimal overhead for tokenomics.
+        uint64 startTimestamp;
+        // Whether the token has been burned.
+        bool burned;
+        // Arbitrary data similar to `startTimestamp` that can be set through `_extraData`.
+        uint24 extraData;
+    }
+
+    /**
+     * @dev Returns the total amount of tokens stored by the contract.
+     *
+     * Burned tokens are calculated here, use `_totalMinted()` if you want to count just minted tokens.
+     */
+    function totalSupply() external view returns (uint256);
+
+    // ==============================
+    //            IERC165
+    // ==============================
+
+    /**
+     * @dev Returns true if this contract implements the interface defined by
+     * `interfaceId`. See the corresponding
+     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section]
+     * to learn more about how these ids are created.
+     *
+     * This function call must use less than 30 000 gas.
+     */
+    function supportsInterface(bytes4 interfaceId) external view returns (bool);
+
+    // ==============================
+    //            IERC721
+    // ==============================
+
+    /**
+     * @dev Emitted when `tokenId` token is transferred from `from` to `to`.
+     */
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+
+    /**
+     * @dev Emitted when `owner` enables `approved` to manage the `tokenId` token.
+     */
+    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
+
+    /**
+     * @dev Emitted when `owner` enables or disables (`approved`) `operator` to manage all of its assets.
+     */
+    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
+
+    /**
+     * @dev Returns the number of tokens in ``owner``'s account.
+     */
+    function balanceOf(address owner) external view returns (uint256 balance);
+
+    /**
+     * @dev Returns the owner of the `tokenId` token.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
+    function ownerOf(uint256 tokenId) external view returns (address owner);
+
+    /**
+     * @dev Safely transfers `tokenId` token from `from` to `to`.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must exist and be owned by `from`.
+     * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
+     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
+     *
+     * Emits a {Transfer} event.
+     */
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes calldata data
+    ) external;
+
+    /**
+     * @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
+     * are aware of the ERC721 protocol to prevent tokens from being forever locked.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must exist and be owned by `from`.
+     * - If the caller is not `from`, it must be have been allowed to move this token by either {approve} or {setApprovalForAll}.
+     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
+     *
+     * Emits a {Transfer} event.
+     */
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external;
+
+    /**
+     * @dev Transfers `tokenId` token from `from` to `to`.
+     *
+     * WARNING: Usage of this method is discouraged, use {safeTransferFrom} whenever possible.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must be owned by `from`.
+     * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external;
+
+    /**
+     * @dev Gives permission to `to` to transfer `tokenId` token to another account.
+     * The approval is cleared when the token is transferred.
+     *
+     * Only a single account can be approved at a time, so approving the zero address clears previous approvals.
+     *
+     * Requirements:
+     *
+     * - The caller must own the token or be an approved operator.
+     * - `tokenId` must exist.
+     *
+     * Emits an {Approval} event.
+     */
+    function approve(address to, uint256 tokenId) external;
+
+    /**
+     * @dev Approve or remove `operator` as an operator for the caller.
+     * Operators can call {transferFrom} or {safeTransferFrom} for any token owned by the caller.
+     *
+     * Requirements:
+     *
+     * - The `operator` cannot be the caller.
+     *
+     * Emits an {ApprovalForAll} event.
+     */
+    function setApprovalForAll(address operator, bool _approved) external;
+
+    /**
+     * @dev Returns the account approved for `tokenId` token.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
+    function getApproved(uint256 tokenId) external view returns (address operator);
+
+    /**
+     * @dev Returns if the `operator` is allowed to manage all of the assets of `owner`.
+     *
+     * See {setApprovalForAll}
+     */
+    function isApprovedForAll(address owner, address operator) external view returns (bool);
+
+    // ==============================
+    //        IERC721Metadata
+    // ==============================
+
+    /**
+     * @dev Returns the token collection name.
+     */
+    function name() external view returns (string memory);
+
+    /**
+     * @dev Returns the token collection symbol.
+     */
+    function symbol() external view returns (string memory);
+
+    /**
+     * @dev Returns the Uniform Resource Identifier (URI) for `tokenId` token.
+     */
+    function tokenURI(uint256 tokenId) external view returns (string memory);
+
+    // ==============================
+    //            IERC2309
+    // ==============================
+
+    /**
+     * @dev Emitted when tokens in `fromTokenId` to `toTokenId` (inclusive) is transferred from `from` to `to`,
+     * as defined in the ERC2309 standard. See `_mintERC2309` for more details.
+     */
+    event ConsecutiveTransfer(uint256 indexed fromTokenId, uint256 toTokenId, address indexed from, address indexed to);
+}
+
+
+// File contracts/ERC721A.sol
+
+// ERC721A Contracts v4.1.0
+// Creator: Chiru Labs
+
+pragma solidity ^0.8.4;
 /**
  * @dev ERC721 token receiver interface.
  */
@@ -947,5 +1465,177 @@ contract ERC721A is IERC721A {
             // Store the length.
             mstore(ptr, length)
         }
+    }
+}
+
+
+// File contracts/Beasts.sol
+
+
+pragma solidity ^0.8.4;
+//  ______     ______     ______     ______     ______   ______   
+// /\  == \   /\  ___\   /\  __ \   /\  ___\   /\__  _\ /\  ___\  
+// \ \  __<   \ \  __\   \ \  __ \  \ \___  \  \/_/\ \/ \ \___  \ 
+//  \ \_____\  \ \_____\  \ \_\ \_\  \/\_____\    \ \_\  \/\_____\
+//   \/_____/   \/_____/   \/_/\/_/   \/_____/     \/_/   \/_____/
+//Developed by RosieX - @RosieX_eth
+
+contract BEASTS is Ownable, ERC721A {
+    constructor() ERC721A("BEASTS", "BEASTS") {}
+
+    struct SaleConfig {
+        uint128 collectionSize;
+        uint32 allowlistStartTime;
+        uint32 allowlistEndTime;
+        uint32 publicStartTime;
+        uint32 publicEndTime;
+    }
+
+    struct PurchaseConfig {
+        uint128 maxBalance;
+        uint128 price;
+    }
+
+    SaleConfig public saleConfig = SaleConfig(
+        333,
+        1658235600,
+        1658257200,
+        0,
+        0
+    );
+
+    PurchaseConfig public purchaseConfig = PurchaseConfig(
+        1,
+        0.05 ether
+    );
+
+
+    string private _baseTokenURI = "";
+    bool public isPaused = false;
+
+    bytes32 public allowlistMerkleRoot;
+    mapping(address => bool) public allowlistClaimed;
+    mapping(address => bool) public publicClaimed;
+
+    modifier isAllowlistOpen
+    {
+        require(block.timestamp > uint256(saleConfig.allowlistStartTime) && block.timestamp < uint256(saleConfig.allowlistEndTime), "Allowlist window is closed!");
+        _;
+    }
+
+    modifier isPublicOpen
+    {
+        require(block.timestamp > uint256(saleConfig.publicStartTime) && block.timestamp < uint256(saleConfig.publicEndTime), "Public window is closed!");
+        _;
+    }
+
+
+    modifier callerIsUser 
+    {
+        require(tx.origin == msg.sender, "The caller is another contract");
+        _;
+    }
+
+    modifier isValidMint(uint256 mintAmount) 
+    {
+        uint256 price = uint256(purchaseConfig.price);
+        uint256 collectionSize = uint256(saleConfig.collectionSize);
+        require(mintAmount > 0, "Mint Amount Incorrect");
+        require(msg.value >= price * mintAmount, "Incorrect payment amount!");
+        require(totalSupply() + mintAmount < collectionSize + 1, "Reached max supply");
+        require(!isPaused, "Mint paused");
+        _;
+    }
+
+    // PUBLIC AND EXTERNAL FUNCTIONS
+    function publicSaleMint(uint256 mintAmount)
+        external
+        payable
+        callerIsUser
+        isPublicOpen
+        isValidMint(mintAmount)
+    {
+        
+        uint256 maxBalance = uint256(purchaseConfig.maxBalance);
+        require(mintAmount < maxBalance + 1, "Mint Amount Incorrect");
+        require(!publicClaimed[msg.sender], "Exceeds max mint amount!");
+        
+        publicClaimed[msg.sender] = true;
+        _safeMint(msg.sender, mintAmount);
+    }
+
+    function allowlistMint(uint256 mintAmount, bytes32[] calldata _merkleProof) 
+        external 
+        payable 
+        callerIsUser 
+        isAllowlistOpen
+        isValidMint(mintAmount)
+    {
+        uint256 maxBalance = uint256(purchaseConfig.maxBalance);
+        bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
+        require(MerkleProof.verify(_merkleProof, allowlistMerkleRoot, leaf), "Proof not on allowlist!");
+        require(mintAmount < maxBalance + 1, "Mint Amount Incorrect");
+        require(!allowlistClaimed[msg.sender], "Exceeds max mint amount!");
+
+        allowlistClaimed[msg.sender] = true;
+        _safeMint(msg.sender, mintAmount);
+    }
+
+    // VIEW FUNCTIONS
+    function _baseURI() internal view virtual override returns (string memory) {
+        return _baseTokenURI;
+    }
+
+    // ADMIN FUNCTIONS
+    function setBaseURI(string calldata baseURI) external onlyOwner {
+        _baseTokenURI = baseURI;
+    }
+
+    function airdrop(address[] memory addresses, uint256[] memory numMints)
+        external
+        onlyOwner
+    {
+        uint256 collectionSize = uint256(saleConfig.collectionSize);
+        require(addresses.length == numMints.length, "Arrays dont match");
+
+        for (uint i = 0; i < addresses.length; i++) {
+            require(totalSupply() + numMints[i] < collectionSize + 1, "Reached max supply");
+            require(numMints[i] > 0, "Cannot mint 0!");
+
+            _safeMint(addresses[i], numMints[i]);
+        }
+    }
+
+    function setAllowlistMerkleRoot(bytes32 root) external onlyOwner {
+        allowlistMerkleRoot = root;
+    }
+
+    //NOTE: price must be in ethers (value * 10**18)
+    function setPrice(uint64 price) external onlyOwner {
+        purchaseConfig.price = price;
+    }
+
+    function setMaxSupply(uint128 size) external onlyOwner {
+        saleConfig.collectionSize = size;
+    }
+
+    function setPaused(bool paused) external onlyOwner {
+        isPaused = paused;
+    }
+
+    function setAllowlistSaleTime(uint32 startTimestamp, uint32 endTimestamp) external onlyOwner {
+        saleConfig.allowlistStartTime = startTimestamp;
+        saleConfig.allowlistEndTime = endTimestamp;
+    }
+
+    function setPublicSaleTime(uint32 startTimestamp, uint32 endTimestamp) external onlyOwner {
+        saleConfig.publicStartTime = startTimestamp;
+        saleConfig.publicEndTime = endTimestamp;
+    }
+
+    function withdrawMoney() external onlyOwner {
+        require(address(this).balance > 0);
+        (bool success, ) = msg.sender.call{value: address(this).balance}("");
+        require(success, "Transfer failed.");
     }
 }

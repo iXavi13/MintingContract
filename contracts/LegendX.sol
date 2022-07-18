@@ -166,13 +166,14 @@ contract LegendX is Ownable, ERC721A, PaymentSplitter {
         return _numberMinted(owner);
     }
 
-    function getOwnershipData(uint256 tokenId)
-        external
-        view
-        returns (TokenOwnership memory)
-    {
-        return ownershipOf(tokenId);
-    }
+    //USE ERC721A OLD
+    // function getOwnershipData(uint256 tokenId)
+    //     external
+    //     view
+    //     returns (TokenOwnership memory)
+    // {
+    //     return ownershipOf(tokenId);
+    // }
 
     function _baseURI() internal view virtual override returns (string memory) {
         return _baseTokenURI;

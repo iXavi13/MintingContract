@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "./ERC721A.sol";
+import "./ERC721A-old.sol";
 
 //    _/        _/_/_/_/    _/_/_/  _/_/_/_/  _/      _/  _/_/_/    _/      _/
 //   _/        _/        _/        _/        _/_/    _/  _/    _/    _/  _/   
